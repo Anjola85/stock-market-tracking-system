@@ -8,7 +8,6 @@ const { BAD_REQUEST, OK, NOT_FOUND } = require("../util/status-codes");
 const UserModel = require("../models/user");
 
 exports.topUpWallet = async (req, res, next) => {
-  //   console.log("req.user ", req.user);
   const user = await UserModel.findById(req.user.id);
   let meta = successResponse();
   if (!user) {

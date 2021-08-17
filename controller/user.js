@@ -115,7 +115,6 @@ exports.loingUser = async (req, res, next) => {
 exports.logout = async (req, res, next) => {
   let meta = successResponse();
   try {
-    console.log("LOGOUT REACHABLE");
     const user = await UserModel.findById(req.user.id);
     if (!user) {
       meta = errorResponse(NOT_FOUND, "Unable to logout, user does not exist");

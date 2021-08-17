@@ -71,7 +71,6 @@ schema.pre("save", function (next) {
 });
 
 schema.methods.comparePassword = function (userPassword) {
-  console.log("userpassword: ", this.password);
   return bcrypt.compareSync(userPassword, this.password);
 };
 module.exports = mongoose.model("User", schema);
