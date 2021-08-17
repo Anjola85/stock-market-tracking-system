@@ -9,6 +9,7 @@ const {
 } = require("../util/helper");
 const { BAD_REQUEST, OK } = require("../util/status-codes");
 const WalletModel = require("../models/wallet");
+const wallet = require("../models/wallet");
 
 /**
  * @param symbol - stock symbol to buy
@@ -48,10 +49,22 @@ exports.buyStock = async (req, res, next) => {
       return res.status(BAD_REQUEST).json(ApiResponse(meta));
     }
 
-    //create stock
-    let newStock = new StockModel({ ...req.body, user });
-    newStock.stockPrice = stockPrice;
-    newStock = await newStock.save();
+    //check if stock exists
+    let stock = await StockModel.findOne({ stockSymbol });
+    // console.log("BUY STOCK FUNCTION: ", stock);
+    let stockID = "";
+    if (stock) {
+      stockID = stock._id;
+      stock.stockPrice += parseInt(req.body.stockPrice);
+      stock.numberOfShares += parseInt(req.body.numberOfShares);
+    } else {
+      //create stock
+      let stock = new StockModel({ ...req.body, user });
+      stock.stockPrice = stockPrice;
+      stock.numberOfShares = parseInt(req.body.numberOfShares);
+      stock = await stock.save();
+      stockID = stock._id;
+    }
 
     //deduct price of stock from wallet
     wallet.balance -= stockPrice;
@@ -63,7 +76,7 @@ exports.buyStock = async (req, res, next) => {
       {
         user,
         wallet: wallet._id,
-        $addToSet: { stocks: newStock._id },
+        $addToSet: { stocks: stockID },
       },
       {
         upsert: true,
@@ -73,7 +86,7 @@ exports.buyStock = async (req, res, next) => {
     );
 
     meta.message = "Stocks successfully bought";
-    return res.status(OK).json(ApiResponse(meta, newStock));
+    return res.status(OK).json(ApiResponse(meta, stock));
   } catch (e) {
     return next(e);
   }
@@ -81,7 +94,27 @@ exports.buyStock = async (req, res, next) => {
 
 //sell stock
 exports.sellStock = async (req, res, next) => {
+  const user = req.user.id;
+  let meta = successResponse();
   try {
+    const stockSymbol = req.body.stockSymbol;
+    //check if user has stock
+    let stock = await StockModel.findOne({ stockSymbol });
+    console.log("sell stock function: ", stock);
+    if (!stock) {
+      meta = errorResponse(BAD_REQUEST, "invalid request");
+    }
+    //sell stock by populating wallet with price
+    wallet = WalletModel.findOne({ user });
+    wallet.balance += stock.stockPrice * parseInt(req.body.numberOfShares);
+
+    //check if user is selling all shares
+    if (req.numberOfShares == stock.numberOfShares) {
+      //delete stock information in database
+      //remove from array in portfolio
+    } else {
+      stock.numberOfShares -= parseInt(req.body.numberOfShares);
+    }
   } catch (e) {
     return next(e);
   }

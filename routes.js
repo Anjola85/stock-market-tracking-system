@@ -22,6 +22,8 @@ route.post("/login", user.loingUser);
 
 route.get("/users/:id", user.getUserById);
 
+//implement logout
+
 /**
  * Wallet route to add and get balance
  */
@@ -31,7 +33,7 @@ route.post(
   wallet.topUpWallet
 );
 route.get(
-  "/getWalletBalance/:id",
+  "/getWalletBalance",
   passport.authenticate("jwt", { session: false }),
   wallet.getWalletBalance
 );
@@ -46,12 +48,14 @@ route.get(
 
 // Get portfolio
 
-//buy live stock - market order
+//buy stock - market order
 route.post(
   "/buy-stock",
   passport.authenticate("jwt", { session: false }),
   stock.buyStock
 );
+
+//sell stock
 
 //stocks api
 route.get("/live-stocks", async (req, res, next) => {

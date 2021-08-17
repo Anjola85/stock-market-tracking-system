@@ -27,7 +27,7 @@ function createToken(user) {
     },
     config.jwtSecret,
     {
-      expiresIn: 1800,
+      expiresIn: 3600,
     }
   );
 }
@@ -118,4 +118,4 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
-//get portfolio by user id
+//logout

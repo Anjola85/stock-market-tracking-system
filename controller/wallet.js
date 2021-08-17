@@ -36,8 +36,9 @@ exports.topUpWallet = async (req, res, next) => {
 
 //get wallet by user id in param
 exports.getWalletBalance = (req, res) => {
-  user_id = req.params.id;
-  Wallet.findOne({ user: user_id }, (err, wallet) => {
+  //return  number of stocks and price
+  id = req.user.id;
+  WalletModel.findOne({ user: id }, (err, wallet) => {
     if (err) {
       return res.status(404).json({
         message: "Unable to fetch wallet",
