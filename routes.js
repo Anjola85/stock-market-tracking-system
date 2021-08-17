@@ -3,6 +3,7 @@ route = express.Router();
 const user = require("./controller/user");
 const wallet = require("./controller/wallet");
 const stock = require("./controller/stocks");
+const portfolio = require("./controller/portfolio");
 const passport = require("passport");
 const axios = require("axios").default;
 const Stocks = require("stocks.js");
@@ -20,9 +21,13 @@ route.post("/signup", user.registerUser);
 
 route.post("/login", user.loingUser);
 
-route.get("/users/:id", user.getUserById);
+route.get(
+  "/logout",
+  passport.authenticate("jwt", { session: false }),
+  user.logout
+);
 
-//implement logout
+route.get("/users/:id", user.getUserById);
 
 /**
  * Wallet route to add and get balance
@@ -47,6 +52,11 @@ route.get(
 );
 
 // Get portfolio
+route.get(
+  "/my-portfolio",
+  passport.authenticate("jwt", { session: false }),
+  portfolio.getPortfolio
+);
 
 //buy stock - market order
 route.post(
@@ -56,6 +66,11 @@ route.post(
 );
 
 //sell stock
+route.post(
+  "/sell-stock",
+  passport.authenticate("jwt", { session: false }),
+  stock.sellStock
+);
 
 //stocks api
 route.get("/live-stocks", async (req, res, next) => {

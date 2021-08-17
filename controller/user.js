@@ -32,6 +32,19 @@ function createToken(user) {
   );
 }
 
+function deleteToken(user) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+    },
+    config.jwtSecret,
+    {
+      expiresIn: 60,
+    }
+  );
+}
+
 exports.registerUser = async (req, res, next) => {
   //signup page
   try {
@@ -87,7 +100,6 @@ exports.loingUser = async (req, res, next) => {
       return res.status(NOT_FOUND).json(ApiResponse(meta));
     }
     const isCorrect = user.comparePassword(password);
-    console.log("isCorrect: ", isCorrect);
     if (!isCorrect) {
       meta = errorResponse(BAD_REQUEST, "Email or password is not correct");
       return res.status(BAD_REQUEST).json(ApiResponse(meta));
@@ -100,10 +112,24 @@ exports.loingUser = async (req, res, next) => {
   }
 };
 
+exports.logout = async (req, res, next) => {
+  let meta = successResponse();
+  try {
+    console.log("LOGOUT REACHABLE");
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      meta = errorResponse(NOT_FOUND, "Unable to logout, user does not exist");
+      return res.status(NOT_FOUND).json(ApiResponse(meta));
+    }
+    meta.message = "Logged out successfully";
+    meta.token = deleteToken(user);
+    return res.status(OK).json(ApiResponse(meta));
+  } catch (e) {
+    return next(e);
+  }
+};
+
 exports.getUserById = async (req, res, next) => {
-  //return user information
-  console.log("req-query", req.query);
-  console.log("req-params", req.params);
   let id = req.params.id;
   let meta = successResponse();
   try {
@@ -117,5 +143,3 @@ exports.getUserById = async (req, res, next) => {
     return next(e);
   }
 };
-
-//logout

@@ -51,9 +51,9 @@ exports.buyStock = async (req, res, next) => {
 
     //check if stock exists
     let stock = await StockModel.findOne({ stockSymbol });
-    // console.log("BUY STOCK FUNCTION: ", stock);
     let stockID = "";
     if (stock) {
+      //add to current stock
       stockID = stock._id;
       stock.stockPrice += parseInt(req.body.stockPrice);
       stock.numberOfShares += parseInt(req.body.numberOfShares);
@@ -85,7 +85,7 @@ exports.buyStock = async (req, res, next) => {
       }
     );
 
-    meta.message = "Stocks successfully bought";
+    meta.message = "Stocks successfully added to wallet";
     return res.status(OK).json(ApiResponse(meta, stock));
   } catch (e) {
     return next(e);
@@ -98,9 +98,9 @@ exports.sellStock = async (req, res, next) => {
   let meta = successResponse();
   try {
     const stockSymbol = req.body.stockSymbol;
+
     //check if user has stock
     let stock = await StockModel.findOne({ stockSymbol });
-    console.log("sell stock function: ", stock);
     if (!stock) {
       meta = errorResponse(BAD_REQUEST, "invalid request");
     }
@@ -110,10 +110,14 @@ exports.sellStock = async (req, res, next) => {
 
     //check if user is selling all shares
     if (req.numberOfShares == stock.numberOfShares) {
-      //delete stock information in database
-      //remove from array in portfolio
+      //delete stock information in database and portfliio
+      stock.remove();
+      meta.message = "stock successfully sold and wallet updated";
+      return res.status(OK).json(ApiResponse(meta, wallet.balance));
     } else {
+      //deduct number of shares
       stock.numberOfShares -= parseInt(req.body.numberOfShares);
+      return res.status(OK).json(ApiResponse(meta, stock));
     }
   } catch (e) {
     return next(e);
